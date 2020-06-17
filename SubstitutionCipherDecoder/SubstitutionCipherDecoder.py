@@ -1,4 +1,5 @@
-from random import shuffle
+from random import randrange, shuffle
+#from string import maketrans
 
 # Dictionary of words/suffixes each with a score based on how common they are
 words = {
@@ -19,11 +20,100 @@ words = {
         'si': 2686, 'so': 3161, 'time': 570, 'sa': 2021, 'se': 6480
     }
 
-key = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z']
+alphabet = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z']
 
-times = int(input("Enter number of times to shuffle the key: "))
 
-print("Start: ", key, sep="")
-for i in range (0,times):
-    shuffle(key)
-    print(i,": ",key,sep="")
+
+
+
+
+def main(): # Main function
+    cipherText = input("Enter your ciphertext: ")
+    print()
+
+    numberOfKeys = int(input("Enter number of random keys to try: "))
+    permutations = int(input("Enter number of permutations per key: "))
+    print("Trying ", numberOfKeys*permutations, " iterations...", sep="")
+
+    # Remove whitespace from ciphertext
+    cipherText = cipherText.replace(" ", "")
+
+    # Get the best key within iteration limit
+    bestKey = findBestKey(cipherText, numberOfKeys, permutations)
+
+    # Generate the plaintext
+    plainText = transform(cipherText, bestKey)
+
+    # Print key
+    print()
+    print(plainText)
+    print(bestKey)
+    print()
+
+
+
+
+def findBestKey(cipherText, numberOfKeys, permutations):
+
+    # base key
+    key = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z']
+   
+    bestScore = 0
+
+    # loop number of times equal to times indicated
+    for i in range(0, numberOfKeys):
+        # shuffle key
+        shuffle(key)
+        bestCurrScore = 0
+        for j in range(0, permutations):
+            # swap some letters for more random
+            newKey = permutateKey(key[:])
+            # score that key
+            newScore = score(newKey, cipherText)
+            # 
+            if newScore > bestCurrScore: # if the new score is better
+                key = newKey[:]
+                bestCurrScore = newScore
+        if bestCurrScore > bestScore: # if that run through was better than
+            bestKey = key[:]                # the all time best
+            bestScore = bestCurrScore
+    # return
+    return bestKey
+
+
+def score(key, cipherText):
+    # use the key to decipher the text
+    k = transform(cipherText, key)
+    # set score to 0
+    score = 0
+    # each word in the dictionary
+    for item in words.keys():
+        # add to the score based on the word found and how many times
+        score = score + k.count(item) * words[item]
+    # return the score
+    return score
+
+
+
+def permutateKey(key):
+    i = randrange(0, 26)
+    j = randrange(0, 26)
+    while i == j: # if they happen to be the same
+        j = randrange(0, 26)
+    key[i], key[j] = key[j], key[i]
+    return key
+
+
+
+
+
+def transform(cipherText, key): 
+    return cipherText.translate(str.maketrans("".join(key), 'abcdefghijklmnopqrstuvwxyz'))
+
+
+
+
+
+
+# Run main
+main()
